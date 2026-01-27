@@ -62,14 +62,12 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           # FIXME: aarch64-linux seems to hang on boot
-          nixosTests = lib.optionalAttrs pkgs.stdenv.hostPlatform.isx86_64 (
-            import ./tests {
-              inherit pkgs;
-              makeTest = import (nixpkgs + "/nixos/tests/make-test-python.nix");
-              eval-config = import (nixpkgs + "/nixos/lib/eval-config.nix");
-              qemu-common = import (nixpkgs + "/nixos/lib/qemu-common.nix");
-            }
-          );
+          nixosTests = import ./tests {
+            inherit pkgs;
+            makeTest = import (nixpkgs + "/nixos/tests/make-test-python.nix");
+            eval-config = import (nixpkgs + "/nixos/lib/eval-config.nix");
+            qemu-common = import (nixpkgs + "/nixos/lib/qemu-common.nix");
+          };
 
           disko-install = pkgs.callPackage ./tests/disko-install {
             inherit self;
@@ -93,7 +91,7 @@
           '';
         in
         # FIXME: aarch64-linux seems to hang on boot
-        lib.optionalAttrs pkgs.stdenv.hostPlatform.isx86_64 (nixosTests // { inherit disko-install; })
+        lib.optionalAttrs pkgs.stdenv.hostPlatform.isAarch64 (nixosTests // { inherit disko-install; })
         //
           pkgs.lib.optionalAttrs (!pkgs.stdenv.buildPlatform.isRiscV64 && !pkgs.stdenv.hostPlatform.isx86_32)
             {
@@ -103,7 +101,7 @@
       );
 
       nixosConfigurations.testmachine = lib.nixosSystem {
-        system = "x86_64-linux";
+        system = "aarch64-linux";
         modules = [
           ./tests/disko-install/configuration.nix
           ./example/hybrid.nix
